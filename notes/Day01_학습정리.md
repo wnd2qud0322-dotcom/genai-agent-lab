@@ -1,109 +1,137 @@
-# Day 01. Python 기초 — 이게 AI Agent 개발에 왜 필요한가
+# Day 01 — 파이썬 프로그래밍
 
-Python 문법 자체보다 **"이 개념이 나중에 LangChain/LangGraph의 어떤 부분이 되는지"**를 중심으로 정리한 복습 노트입니다.
+## 01. 변수와 자료형
 
----
+**필요성**
+`Langchain → (type hint + docstring 완성) → JSON Schema 생성 → LLM`
 
-## 1차시. 변수와 자료형 / 타입 힌트
-
-**핵심 개념**: 파이썬은 동적 타이핑이라 변수 타입을 선언하지 않아도 되지만, `city: str`처럼 타입 힌트를 붙일 수 있다.
-
-**AI Agent와의 연결**
-- LangChain의 `@tool` 데코레이터는 함수의 **타입 힌트를 읽어서 LLM에게 전달할 JSON Schema를 자동 생성**한다.
-- 타입 힌트가 없으면 LLM이 도구에 잘못된 타입의 인자를 넣을 위험이 커진다 (예: 숫자 대신 문자열을 넣어 `TypeError` 발생).
-
-**왜 필요한가**: 도구 함수의 안정성은 결국 "타입을 정확히 선언했는가"에서 시작된다.
+- **type hint**: 변수·함수의 매개변수/반환값에 어떤 자료형을 기대하는지 표시하는 문법
+  - `city: str = "부산"`
+  - `def get_weather_with_hint(city: str) -> str:`
+- **f-string**: 변수를 문자열에 바로 삽입
+  - `print(f"{city}의 기온은 {temperature:.1f}도 입니다")`
+  - `return f"[도구: {tool_name}] 결과 -> {result}"`
 
 ---
 
-## 2차시. 조건문과 반복문
+## 02. 조건문과 반복문
 
-**핵심 개념**: `if/elif/else`로 분기, `while`/`for`로 반복, `break`/`continue`로 흐름 제어.
+**필요성**: AI Agent Loop 뼈대
 
-**AI Agent와의 연결**
-- **`while` 루프 = Agent의 핵심 동작 원리 그 자체.** ReAct 패턴(추론→행동→관찰을 반복)과 LangGraph의 그래프 실행 모두 "종료 조건(FINISH/END)에 도달할 때까지 반복"하는 구조다.
-- `if/elif`는 "어떤 도구를 호출할지" 판단하는 로직의 단순화 버전 (실제로는 LLM이 이 판단을 수행).
-- `max_steps` 같은 안전장치는 실제 프레임워크의 `ModelCallLimitMiddleware`와 동일한 역할 — 무한 루프로 인한 API 비용 폭증을 막는다.
-- `try/except` + `while`을 결합한 재시도(Retry) 로직은 `ToolRetryMiddleware`가 내부적으로 하는 일과 같다.
-
-**왜 필요한가**: Agent를 "안정적으로 멈출 줄 아는 존재"로 만드는 게 바로 이 반복/조건 제어다.
-
-**부록 — AI 서비스 개발의 3계층** (이 강의 전체를 관통하는 개념)
-| 계층 | 하는 일 | 배우는 시점 |
-|---|---|---|
-| 프롬프트 엔지니어링 | 모델에게 "무엇을 하라" 지시 | Day02 |
-| 컨텍스트 엔지니어링 | 모델에게 "무엇을 보여줄지" 설계 (RAG 등) | Day03~04 |
-| 하네스 엔지니어링 | 모델 호출을 감싸는 인프라 (루프, 재시도, 메모리) | Day04~05 — 오늘 배운 if/while이 이 계층의 뼈대 |
+- `if~else` : 어떤 도구(tool)를 선택할지 판단
+- `while` : ReAct(Reasoning + Acting) — 답이 나올 때까지 Loop 반복
+- `for` + (`break`/`continue`) : 여러 도구를 순회하면서, 실패는 건너뛰기
+- 재시도 로직 : `try`로 최대 재시도 횟수만큼 반복
 
 ---
 
-## 3차시. 리스트·딕셔너리·집합·JSON
+## 03. 리스트·딕셔너리·집합과 JSON
 
-**핵심 개념**: list(순서 있음)/dict(key-value)/set(중복 제거)/tuple(수정 불가+언패킹), 그리고 `json.dumps`/`json.loads`.
+**필요성**
+LangChain/LangGraph에서 메시지, 도구 호출 인자, 도구 실행 결과는 모두 `dict`로 표현된다.
+Agent가 대화하는 형식 자체가 `dict`를 담은 `list`다.
 
-**AI Agent와의 연결**
-- **LangChain/LangGraph에서 오가는 모든 데이터는 결국 "dict를 담은 list"다.** `agent.invoke({"messages": [{"role": "user", "content": "..."}]})` 형태가 그 실체.
-- LLM의 도구 호출 응답(`tool_calls`)은 dict 안에 dict가 들어있는 중첩 구조 (`{"name": ..., "args": {"city": "서울"}}`).
-- **LLM API는 실제로는 JSON 문자열로 통신**한다. `json.dumps()`(보낼 때)/`json.loads()`(받을 때)가 dict ↔ 문자열 변환의 핵심.
-- tuple 언패킹(`kind, content = plan[step]`)은 2차시 Agent Loop에서 이미 사용한 패턴이고, LangChain의 `("user", "...")` 메시지 축약 문법과도 동일한 원리.
-
-**왜 필요한가**: 이 자료형들을 모르면 LLM 응답 구조를 읽거나 도구 호출 인자를 다루는 코드 자체를 이해할 수 없다.
-
----
-
-## 4차시. 함수와 클래스
-
-**핵심 개념**: 함수(기본값, `*args`/`**kwargs`), docstring, 클래스(`__init__`, 속성/메서드), 상속.
-
-**AI Agent와의 연결**
-- **LangChain의 도구(tool)는 결국 함수이고, Agent의 메모리·State는 결국 클래스다.**
-- docstring은 LLM에게 "이 도구가 언제, 왜 필요한지" 알려주는 설명서 역할 — **docstring을 잘 쓰는 것 자체가 프롬프트 엔지니어링의 일부**.
-- 클래스로 만든 `ConversationMemory` 같은 구조가 "최근 N개 메시지만 유지"하는 슬라이딩 윈도우 방식의 메모리 관리 기본 원리.
-- 상속(`BaseAgent` → `WeatherAgent`, `MathAgent`)은 여러 전문 Agent를 구조화하는 방법 — **Day05 Multi-Agent의 Orchestrator-Worker 패턴의 뼈대**가 여기서 이미 만들어진다.
-
-**왜 필요한가**: "함수 = 도구", "클래스 = 상태/메모리/Agent 객체"라는 대응관계를 알면 이후 프레임워크 코드가 낯설지 않다.
-
----
-
-## 5차시. 데코레이터와 모듈
-
-**핵심 개념**: 데코레이터(함수를 감싸 기능 추가), `@dataclass`(클래스용 데코레이터), 모듈(`.py` 파일 = import 가능한 코드 묶음).
-
-**AI Agent와의 연결**
-- **`@tool`의 정체가 바로 데코레이터.** 평범한 함수를 감싸서 "LLM이 호출 가능한 도구"로 등록하는 역할을 한다.
-- **`@dataclass`는 LangGraph의 State 정의 표준 방식.** 속성만 선언하면 `__init__`을 자동 생성해준다.
-- 도구는 `tools.py`, 상태는 `state.py`처럼 **역할별로 모듈을 나누는 것**이 실전 프로젝트의 기본 구조.
-- `inspect.getmembers()`로 모듈 안 함수/클래스를 자동 탐색하는 방식은 프레임워크가 도구를 자동 등록하는 원리와 같다.
-
-**왜 필요한가**: "포장지(데코레이터)로 기능을 덧씌운다"는 개념 하나로 `@tool`, `@dataclass` 등 프레임워크의 각종 `@` 문법을 다 이해할 수 있다.
-
----
-
-## 6차시. 예외 처리와 파일 입출력
-
-**핵심 개념**: `try/except/finally`, 커스텀 예외(`class MyError(Exception)`), `with open(...)`으로 파일 읽기/쓰기.
-
-**AI Agent와의 연결**
-- 도구 호출은 네트워크 오류, 잘못된 입력 등으로 **언제든 실패할 수 있다.** `try/except` 없이는 실패 하나가 Agent 전체를 멈춰 세운다.
-- 커스텀 예외(`ToolExecutionError`)로 "이건 우리 도구 실행 에러"라고 구분해서 처리할 수 있다.
-- 파일 입출력은 **Manus AI 방식**의 핵심 — 긴 작업의 진행 상황을 `todo.md` 같은 파일에 기록해두면, 매번 AI의 컨텍스트(기억)에 다 담아두지 않아도 돼서 부담이 줄어든다.
-- try/except + 파일 로깅을 합친 "안전한 실행기"는 `ToolRetryMiddleware`, `LangSmith Tracing`(실행 기록 추적)의 단순화 버전.
-
-**왜 필요한가**: 실패해도 안 죽고, 기록을 남기는 것 — 이 두 가지가 "안정적인 Agent"의 최소 조건이다.
-
----
-
-## 한 장 요약
-
-| Python 개념 | Agent 세계에서의 정체 |
+| 자료형 | 특징 |
 |---|---|
-| 변수/타입 힌트 | 도구 함수 인자의 타입 스펙 (`@tool`의 JSON Schema 근거) |
-| 조건문/반복문 | Agent Loop(ReAct, LangGraph 그래프 실행) 그 자체 |
-| list/dict/JSON | LLM과 주고받는 메시지·도구 호출의 실제 데이터 형태 |
-| 함수 | 도구(tool) |
-| 클래스 | 메모리/State/Agent 객체 |
-| 상속 | 여러 전문 Agent(Worker) 구조화 |
-| 데코레이터 | `@tool`, `@dataclass`의 원리 |
-| 모듈 | `tools.py`/`state.py`로 역할별 코드 분리 |
-| 예외처리 | 도구 실패에도 Agent가 멈추지 않게 하는 안전장치 |
-| 파일 입출력 | 작업 기록/State를 파일로 저장 (Manus AI 방식) |
+| `list [ ]` | 순서 있음, 중복 가능, 추가 가능 |
+| `tuple ( )` | 순서 있음, 중복 가능 → **unpacking** = tuple 값들을 여러 변수에 한 번에 나눠 담는 문법 |
+| `dict { }` | key : value 형태 — ex) `student.get("동아리", "없음")` → 없는 key도 안전하게 처리 가능 |
+| `set { }` | 순서 없음, 중복 불가 |
+
+**dict ↔ JSON 변환**
+- `json.dumps(dict)` : dict → JSON 변환 — Agent에게 보낼 때
+- `json.loads(문자열)` : JSON 문자열 → dict — Agent에게서 받을 때
+- LLM API가 결국 JSON 형태로 요청/응답을 주고받는다.
+
+---
+
+> ### AI Agent의 3계층
+> 1) **Prompt engineering** — 모델에게 "~을 해라" 지시하는 계층
+>    - System prompt : 역할·페르소나 정의
+>    - Few-shot 예시 : 원하는 형식·스타일 정의
+>    - Chain-of-thought : 단계별 추론 유도
+>    - 원하는 형식 명시 : JSON·표 형식 명시
+> 2) **Context engineering** — 모델에게 "~을 보여주기" (RAG)
+> 3) **Harness engineering** — 모델 호출을 감싸는 인프라를 설계하는 계층
+
+---
+
+## 04. 함수와 클래스
+
+**필요성**: LangChain의 도구(tool)는 함수이고, 메모리와 state는 class이다.
+
+**함수**
+1) `*args` : 남은 위치 인자를 tuple로 받음 / `**kwargs` : 남은 키워드 인자를 dict로 받음
+   - `def search(query: str, top_k: int = 3) -> str:`
+   - `def call_tool(name: str, *args, **kwargs):`
+2) docstring과 type hint = 도구 설명서
+   - docstring → LLM에게 "이 도구가 뭘 하는지" 전달
+   - ★ docstring을 잘 쓰는 건 prompt engineering
+
+**클래스** = 데이터와 동작을 하나로 묶는다.
+1) 단일 구조 : `class Agent: def 동작정의1(): / def 동작정의2():`
+2) 복합 구조(상속) :
+   ```python
+   class BaseAgent:
+       def __init__(self): ...
+       def run(self): ...
+
+   class WeatherAgent(BaseAgent):
+       def run(self): ...
+
+   class MathAgent(BaseAgent):
+       def run(self): ...
+   ```
+
+---
+
+## 05. 데코레이터와 모듈
+
+**필요성**
+- LangChain에서 `@tool`은 평범한 함수를 → **"LLM이 호출할 수 있는 도구"**로 바꿔준다.
+- `@dataclass`는 평범한 class를 → **"state 정의"**로 바꿔준다.
+- 실전에서는 이렇게 만든 함수와 class를 `tools.py`, `state.py` 같은 모듈로 나눠 관리한다.
+- 데코레이터 = 함수를 감싸서 새 역할이 추가된 새 함수를 돌려준다. (`@simple_tool_decorator`)
+- 함수나 클래스를 `.py` 파일로 저장하면 모듈이 된다 → 어디서든 import해서 사용 가능
+
+**decorator의 기본 구조**
+```python
+def decorator(func):              # ← 포장지
+    def wrapper(*args, **kwargs):     # ← 함수에 기능 확장
+        # 추가 기능
+        return func(*args, **kwargs)
+    return wrapper                 # ← 새 함수 반환
+```
+
+> **[Python 개념이 실제 AI Agent에 어떻게 적용되는지]**
+> - 데코레이터 : 평범한 함수를 AI가 실행할 수 있는 도구로 바꿈
+> - 모듈 : 도구는 `tools.py`, 상태는 `state.py`처럼 분리 관리
+> - inspect 리플렉션 : 프레임워크가 사용 가능한 도구를 자동으로 찾아냄
+> - orchestrator 패턴 : 날씨 관련 질의는 날씨 Agent, 계산 관련 질의는 계산 Agent에 전달
+
+---
+
+## 06. 예외처리와 파일입출력
+
+**필요성**: Agent에서 오류가 발생할 수 있다. 예외처리를 해두지 않으면 Agent 전체가 멈춰버린다.
+
+- `try, except, finally` → 도구 실행 실패가 전체 Agent를 멈추지 않게 한다.
+- 커스텀 예외 → Agent 전용 에러 타입으로 의미 있는 처리
+
+---
+
+## 07. Streamlit
+
+Python 코드만으로 웹 화면을 만드는 framework다.
+
+**형태**
+```python
+%%writefile mini_app.py
+import streamlit as st
+
+st.title("...")
+user_input = st.text_input("...")
+if user_input:
+    st.write(f"...")
+```
+→ `mini_app.py`가 파일로 저장됨 → `streamlit run mini_app.py`

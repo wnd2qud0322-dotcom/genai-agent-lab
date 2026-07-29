@@ -1,5 +1,5 @@
 import streamlit as st
-from search_places import(
+from practice.Day02_실습.search_places import(
     extract_search_terms,
     search_kakao_places,
     make_context,

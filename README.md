@@ -11,8 +11,8 @@ AI Agent 개발 실전 과정(Python 기초 → OpenAI SDK → LangChain/RAG →
 | Day | 주제 | 상태 |
 |---|---|---|
 | 01 | Python 기초 — 변수/제어문/함수/클래스/데코레이터/예외처리 | ✅ 완료 |
-| 02 | OpenAI SDK 기반 AI 서비스 구현 — 프롬프트/컨텍스트 엔지니어링, 공공API 활용 | 🔄 진행 중 |
-| 03 | LangChain & RAG — Tool Calling, Output Parser, LCEL, RAG 파이프라인 | ⬜ 예정 |
+| 02 | OpenAI SDK 기반 AI 서비스 구현 — 프롬프트/컨텍스트 엔지니어링, 공공API 활용 | ✅ 완료 |
+| 03 | LangChain & RAG — Tool Calling, Output Parser, LCEL, RAG 파이프라인 | 🔄 진행 중 |
 | 04 | LangGraph & Single Agent — StateGraph, ReAct 패턴, CRAG/HyDE | ⬜ 예정 |
 | 05 | LangSmith & Multi-Agent — Orchestrator-Worker, 최종 프로젝트 | ⬜ 예정 |
 

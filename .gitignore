@@ -20,3 +20,7 @@ Thumbs.db
 # Vector DB / cache (프로젝트별로 필요 시 사용)
 chroma_db/
 faiss_*/
+
+# AI 도구 로컬 설정 (Claude Code 등)
+.claude/
+.agents/

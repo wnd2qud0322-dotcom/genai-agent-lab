@@ -167,7 +167,6 @@ class CommaSeparatedListOutputParser(BaseOutputParser):
 | 벡터DB | 임베딩을 저장하고 "질문과 가까운 벡터"를 빠르게 찾아주는 저장소(Chroma, FAISS 등) |
 | Retriever | 벡터DB에서 검색 기능만 뽑아낸 인터페이스. `.invoke(질문)` → 관련 청크 리스트 반환 |
 
-
 ### 문서 로더 종류
 
 | 로더 | 용도 |
@@ -179,7 +178,6 @@ class CommaSeparatedListOutputParser(BaseOutputParser):
 | `UnstructuredPDFLoader` | 스캔 이미지·복잡한 포맷의 PDF (OCR 필요) |
 | `WebBaseLoader` | 웹페이지 URL |
 
-
 ### 청킹(Splitter) 방식 비교
 
 | Splitter | 특징 |
@@ -187,7 +185,6 @@ class CommaSeparatedListOutputParser(BaseOutputParser):
 | `RecursiveCharacterTextSplitter` | 여러 구분자(`\n\n`→`\n`→공백 순)를 차례로 시도해 의미 단위를 최대한 보존 — 실무 기본값 |
 | `CharacterTextSplitter` | 구분자 하나로만 단순 분할 (기본값 `\n\n`) |
 | `TokenTextSplitter` | 글자 수가 아니라 토큰 수 기준으로 분할 |
-
 
 ### 임베딩 방식 비교
 
@@ -202,7 +199,6 @@ class CommaSeparatedListOutputParser(BaseOutputParser):
 - Dense가 좋음: 사용자가 두루뭉술하게 캐주얼하게 질문하는 경우
 - 실무 표준: 둘 다 섞어 쓰는 Hybrid(BM25+Dense, RRF 결합)
 
-
 ### 벡터 검색 기반 알고리즘 (아래 "검색 방식 비교" 표의 밑바탕)
 
 | 계층 | 알고리즘 | 역할 |
@@ -216,7 +212,6 @@ class CommaSeparatedListOutputParser(BaseOutputParser):
 - L2/코사인·HNSW = "가까운 걸 빠르게 재는 방법", RRF·Re-ranking = "그 결과의 품질을 한 번 더 끌어올리는 기법"
 - 아래 표(similarity_search / MMR / MultiQueryRetriever / 하이브리드)는 이 알고리즘들을 실제로 조합해 만든 **실무 전략**들임
 
-  
 ### 검색 방식 비교
 
 | 방식 | 기준 | 특징 |
@@ -225,7 +220,6 @@ class CommaSeparatedListOutputParser(BaseOutputParser):
 | `MMR`(max_marginal_relevance) | 유사도 + 다양성 | `fetch_k`개 후보를 유사도로 먼저 뽑고, 그중 `k`개를 중복 없이 다양하게 최종 선택 |
 | `MultiQueryRetriever` | 질문을 LLM이 여러 형태로 변형해 동시 검색 | 표현이 달라 놓치던 문서까지 폭넓게 포착 |
 | 하이브리드 검색 | 벡터 검색 + BM25(키워드) | 의미 기반 검색과 정확한 단어 매칭을 `EnsembleRetriever`로 결합, `weights`로 비율 조절 |
-
 
 ### 파이프라인 요약
 
@@ -244,7 +238,6 @@ Retriever
   ↓ LCEL 체인 {context: retriever|format_docs, question: ...} | prompt | llm | parser
 답변
 ```
-
 
 ### RAG 출처 표시
 

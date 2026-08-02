@@ -1,4 +1,4 @@
-# GenAI Agent Lab
+# 🐧 GenAI Agent Lab
 
 생성형 AI의 원리와 대규모 언어모델(LLM)의 이해를 바탕으로, LangChain·LangGraph 기반 AI Agent를 직접 설계하고 구현하며 기록하는 저장소입니다.
 
